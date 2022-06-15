@@ -1,0 +1,39 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Node.js CI
+
+on:
+  push:
+    branches: [ "rusik-final" ]
+  pull_request:
+    branches: [ "rusik-final" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Use Node.js 16
+      uses: actions/setup-node@v3
+      with:
+        node-version: "16.x"
+        cache: 'npm'
+    - run: npm install
+    - run: npm run build --if-present
+    - name: Rsync and Deploy
+      uses: blbecker/rsync-deploy@v1.0
+      with:
+        # The hostname of the host to rsync to
+        destination_host: 188.120.242.182
+        # The directory on the remote host to rsync to
+        destination_path: "/var/www/themeeter.ru"
+        # Base64 encoded SSH Private key to use for deployment
+        deployment_key: ${{ secrets.RSYNC }}
+        # The user with which to rsync the website to destination
+        deployment_user: root
+        # The local directory to deploy to the remote host
+        source_dir: "build/"
+    
